@@ -79,7 +79,8 @@ target_compile_definitions(ps5_emulator_ui PRIVATE PS5UI_PS4=1)
 if(PS5UI_ENABLE_LAUNCH)
   target_compile_definitions(ps5_emulator_ui PRIVATE PS5UI_ENABLE_LAUNCH=1)
 endif()
-target_compile_options(ps5_emulator_ui PRIVATE -Wall -Wextra)
+target_compile_options(ps5_emulator_ui PRIVATE -Wall -Wextra
+  -include ${CMAKE_CURRENT_SOURCE_DIR}/src/ps4_shim.h)
 set_target_properties(ps5_emulator_ui PROPERTIES SUFFIX ".elf")
 
 # ELF -> signed-fake eboot.bin -> param.sfo/icon -> GP4 -> PKG (see scripts/package_pkg.sh)
