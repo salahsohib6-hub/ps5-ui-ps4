@@ -1,0 +1,6 @@
+build/
+*.o
+*.elf
+*.oelf
+*.pkg
+.vscode/

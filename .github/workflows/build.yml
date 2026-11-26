@@ -1,0 +1,95 @@
+name: Build PKG
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      toolchain_url:
+        description: 'Optional direct URL of an OpenOrbis toolchain zip/tar.gz (default: latest GitHub release)'
+        required: false
+
+permissions:
+  contents: write   # needed only to attach the PKG to a release on tags
+
+env:
+  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: '1'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
+jobs:
+  host-tests:
+    name: Desktop tests (ASan + UBSan)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ python3 python3-pil
+      - name: Build and run tests
+        run: scripts/host_build.sh --shots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots-host-harness
+          path: build/host/shots/*.ppm
+          if-no-files-found: ignore
+
+  build-pkg:
+    name: Build PS4 PKG (OpenOrbis)
+    needs: host-tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld cmake ninja-build python3 unzip curl
+
+      - name: Download OpenOrbis toolchain
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OO_TOOLCHAIN_URL: ${{ github.event.inputs.toolchain_url || vars.OO_TOOLCHAIN_URL }}
+        run: |
+          TC="$(scripts/get_toolchain.sh "$RUNNER_TEMP/openorbis")"
+          echo "OO_PS4_TOOLCHAIN=$TC" >> "$GITHUB_ENV"
+          echo "Toolchain: $TC"
+          ls "$TC" "$TC/bin" "$TC/lib" | head -80
+
+      - name: Configure
+        run: |
+          cmake -S . -B build/ps4 -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/OpenOrbisToolchain.cmake \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build ELF and package PKG
+        run: cmake --build build/ps4 --verbose
+
+      - name: Collect output
+        run: |
+          mkdir -p out
+          cp build/ps4/dist/*.pkg out/
+          cp build/ps4/dist/eboot.bin out/
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PS5-Emulator-UI-for-PS4-pkg
+          path: out/*
+
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          echo "--- toolchain tools"; ls -la "$OO_PS4_TOOLCHAIN/bin/linux" || true
+          echo "--- toolchain libs";  ls "$OO_PS4_TOOLCHAIN/lib" | head -100 || true
+          for t in create-fself create-gp4 PkgTool.Core; do
+            echo "--- $t --help"; "$OO_PS4_TOOLCHAIN/bin/linux/$t" --help 2>&1 | head -40 || true
+          done
+
+      - name: Attach PKG to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*.pkg
