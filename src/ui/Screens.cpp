@@ -105,7 +105,7 @@ void UiApp::renderHome() {
   const GameEntry& g = library_.all()[static_cast<size_t>(homeView_[static_cast<size_t>(homeIndex_)])];
   r_.drawText(150, 740, Renderer::fitText(g.title, FontId::Title, 1500), FontId::Title, theme::kText);
   std::string meta = g.titleId + "   |   v" + (g.version.empty() ? "?" : g.version) + "   |   Min FW " + fwString(g.minFirmware);
-  if (g.launchCount) meta += "   |   Launched " + std::to_string(g.laun";
+  if (g.launchCount) meta += "   |   Launched " + std::to_string(g.launchCount) + "x";
   r_.drawText(150, 818, meta, FontId::Body, theme::kTextDim);
   r_.drawText(150, 864, Renderer::fitText(g.path, FontId::Small, 1500), FontId::Small, theme::kTextFaint);
 }
