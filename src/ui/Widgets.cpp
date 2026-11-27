@@ -78,9 +78,9 @@ float drawKeyHint(Renderer& r, float x, float y, const std::string& key, const s
 void drawStar(Renderer& r, float cx, float cy, float rad, uint32_t color) {
   std::vector<Point> pts;
   for (int i = 0; i < 10; ++i) {
-    float a = -3.14159265f / 2 + static_cast<float>(i) * 3.14159265f / 5;
-    float rr = (i % 2 == 0) ? rad : rad * 0.45f;  }
-pts.push_back({cx + static_cast<float>(std::cos(a)) * rr, cy + static_cast<float>(std::sin(a)) * rr}); 
+        float a = -3.14159265f / 2 + static_cast<float>(i) * 3.14159265f / 5;
+        float rr = (i % 2 == 0) ? rad : rad * 0.45f;
+    pts.push_back({cx + static_cast<float>(std::cos(a)) * rr, cy + static_cast<float>(std::sin(a)) * rr});   }
   r.fillPolygon(pts, color);
 }
 
