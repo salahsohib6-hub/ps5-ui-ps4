@@ -39,7 +39,7 @@ jobs:
   build-pkg:
     name: Build PS4 PKG (OpenOrbis)
     needs: host-tests
-        runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
