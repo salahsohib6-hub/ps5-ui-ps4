@@ -66,11 +66,11 @@ make_eboot() {
 ok=0
 for variant in 1 2; do
   rm -f "$STAGE/eboot.bin"
-  if [[ $variant == 1 ]]; then
-    make_eboot -in="$ELF" -out="$OELF" --eboot "eboot.bin" --paramsfo "sce_sys/param.sfo" && [[ -s "$STAGE/eboot.bin" ]] && ok=1 && break
-  else
-    make_eboot -in="$ELF" -out="$OELF" --eboot "eboot.bin" && [[ -s "$STAGE/eboot.bin" ]] && ok=1 && break
-  fi
+      make_eboot -in="$ELF" -out="$OELF" --eboot "eboot.bin" && [[ -s "$STAGE/eboot.bin" ]] && ok=1 && break
+    
+  
+    
+  
   echo "package: create-fself variant $variant did not produce eboot.bin, trying next" >&2
 done
 if [[ $ok != 1 ]]; then
